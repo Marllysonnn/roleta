@@ -15,7 +15,8 @@
             <div class="d-flex flex-column flex-md-row align-items-md-end justify-content-between gap-3 mb-4">
                 <div>
                     <h1 class="h3 mb-1 title-gradient">Roleta de Filmes</h1>
-                    <p class="text-secondary mb-0">Insira os Filmes · insira a qquantidade (opcional) · coloque o time (opcional) · Iniciar / Parar com desaceleração</p>
+                    <p class="text-secondary mb-0">Insira os Filmes · insira a qquantidade (opcional) · coloque o time
+                        (opcional) · Iniciar / Parar com desaceleração</p>
                 </div>
                 <div class="timer-pill text-center" id="timer">00:00</div>
             </div>
@@ -27,7 +28,8 @@
                             <div style="width: 70%" class="input-group">
                                 <input type="text" id="nameInput" class="form-control" placeholder="Digite o filme">
                                 <div id="autocompleteList" class="autocomplete-list"></div>
-                                <button id="addBtn" class="btn p-0" style="background: #7c3aed; width: 80px;">Adicionar</button>
+                                <button id="addBtn" class="btn p-0"
+                                    style="background: #7c3aed; width: 80px;">Adicionar</button>
                             </div>
                             <div style="width: 30%" class="input-group">
                                 <span class="input-group-text bg-transparent text-light">Qtd</span>
@@ -38,7 +40,8 @@
                             <div class="col">
                                 <div class="input-group">
                                     <span class="input-group-text bg-transparent text-light">Time</span>
-                                    <input id="autoTime" type="number" value="5" class="form-control" placeholder="5s" min="1">
+                                    <input id="autoTime" type="number" value="5" class="form-control" placeholder="5s"
+                                        min="1">
                                 </div>
                             </div>
                             <div class="row gap-0 col-md-8">
@@ -53,7 +56,8 @@
                             <div class="card-header bg-transparent border-0 pb-0">
                                 <h2 class="h6 mb-2">Filmes adicionados</h2>
                             </div>
-                            <div style="background: #2d1c4b6e; border-radius: 0.5rem;" class="card-body names-card pt-3">
+                            <div style="background: #2d1c4b6e; border-radius: 0.5rem;"
+                                class="card-body names-card pt-3">
                                 <div id="nameList" class="d-flex flex-column gap-2"></div>
                             </div>
                         </div>
@@ -67,8 +71,15 @@
                     </div>
                 </div>
 
-                <div class="col-12 text-center mt-3">
-                    <div id="winner" class="fs-4 fw-bold text-success"></div>
+                <div class="col-12 text-center mt-3 display">
+                    <div id="winnerModal" class="winner-modal d-none">
+                        <div class="winner-backdrop"></div>
+                        <div class="winner-box">
+                            <button id="closeWinner" class="close-btn">&times;</button>
+                            <h2 class="winner-title">🎉 Filme Sorteado</h2>
+                            <p id="winnerName" class="winner-name"></p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

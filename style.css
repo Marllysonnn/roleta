@@ -173,3 +173,66 @@ canvas {
 .autocomplete-list div:hover {
     background: #2a2446;
 }
+
+.winner-modal {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.winner-backdrop {
+  position: absolute;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(6px);
+}
+
+.winner-box {
+  position: relative;
+  background: #1b1631;
+  border: 1px solid #2b2250;
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: center;
+  color: #fff;
+  z-index: 2001;
+  max-width: 320px;
+  width: 90%;
+  animation: pop 0.4s ease;
+}
+
+.winner-title {
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  color: #a78bfa;
+}
+
+.winner-name {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #22c55e;
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #fff;
+  cursor: pointer;
+}
+
+@keyframes pop {
+  0% { transform: scale(0.8); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.d-none {
+  display: none !important;
+}

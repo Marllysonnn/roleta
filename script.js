@@ -96,7 +96,7 @@ function loop() {
 
 function startSpin() {
   if (spinning || names.length === 0) return;
-  spinning = true; decelerating = false; $('#winner').textContent = '';
+  spinning = true; decelerating = false;
 
   speed = 0.18 + Math.random() * 0.05;
   angle = Math.random() * Math.PI * 2;
@@ -112,7 +112,7 @@ function startSpin() {
   if (s > 0) {
     autoStopTO = setTimeout(() => {
       decelerating = true;
-      clearInterval(timerId); 
+      clearInterval(timerId);
     }, s * 1000);
   }
 
@@ -137,7 +137,6 @@ function finish() {
   const a = (Math.PI * 2 - (angle % (Math.PI * 2))) % (Math.PI * 2);
   const idx = Math.floor(a / slice) % N;
 
-
   const finalAngle = angle;
 
   let start = null;
@@ -153,7 +152,6 @@ function finish() {
     const progress = Math.min((ts - start) / duration, 1);
     const eased = easeOut(progress);
 
-  
     const offset = Math.sin(progress * Math.PI) * bounceSize * (1 - eased);
     angle = finalAngle + offset;
 
@@ -162,15 +160,18 @@ function finish() {
     if (progress < 1) {
       requestAnimationFrame(animateBounce);
     } else {
-    
       angle = finalAngle;
       drawWheel();
-      $('#winner').textContent = `🎉 Sorteado: ${names[idx]}`;
+
+      document.getElementById("winnerName").textContent = names[idx];
+
+      document.getElementById("winnerModal").classList.remove("d-none");
     }
   }
 
   requestAnimationFrame(animateBounce);
 }
+
 
 $('#nameInput').addEventListener('input', showAutocomplete);
 
@@ -204,3 +205,13 @@ document.addEventListener('click', e => {
 });
 
 drawWheel();
+
+document.getElementById("closeWinner").addEventListener("click", () => {
+  document.getElementById("winnerModal").classList.add("d-none");
+});
+
+document.querySelector(".winner-backdrop").addEventListener("click", () => {
+  document.getElementById("winnerModal").classList.add("d-none");
+});
+
+
