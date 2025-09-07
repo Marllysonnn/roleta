@@ -1,4 +1,3 @@
-
 const names = [];
 let angle = 0;
 let speed = 0;
@@ -6,6 +5,7 @@ let spinning = false;
 let decelerating = false;
 let timerId = null;
 let autoStopTO = null;
+let autoStopReached = false;
 const canvas = document.getElementById('wheel');
 const ctx = canvas.getContext('2d');
 
@@ -40,7 +40,6 @@ function renderList() {
     counts[n] = (counts[n] || 0) + 1;
   });
 
-
   Object.keys(counts).forEach(n => {
     const b = document.createElement('span');
     b.className = 'badge rounded-pill name-badge text-start';
@@ -48,7 +47,6 @@ function renderList() {
     list.appendChild(b);
   });
 }
-
 
 function drawWheel() {
   const N = names.length;
@@ -79,11 +77,42 @@ function drawWheel() {
 }
 
 let rafId = 0; let startTs = 0;
+function startSpin() {
+  if (spinning || names.length === 0) return;
+  spinning = true;
+  decelerating = false;
+
+  speed = 0.1 + Math.random() * 0.03;
+  angle = Math.random() * Math.PI * 2;
+
+  clearInterval(timerId);
+  startTs = Date.now();
+  timerId = setInterval(() => {
+    const t = Math.floor((Date.now() - startTs) / 1000);
+    $('#timer').textContent = `00:${String(t).padStart(2, '0')}`;
+  }, 1000);
+
+  let s = parseInt($('#autoTime').value, 10);
+  if (isNaN(s) || s <= 0) {
+    s = 3;
+  }
+
+  autoStopTO = setTimeout(() => {
+    autoStopReached = true;
+    decelerating = true;
+    clearInterval(timerId);
+  }, s * 1000);
+
+  cancelAnimationFrame(rafId);
+  rafId = requestAnimationFrame(loop);
+}
+
 function loop() {
   angle = (angle + speed) % (Math.PI * 2);
 
   if (decelerating) {
-    speed *= 0.995;
+    speed *= 0.990;
+
     if (speed < 0.002) {
       finish();
       return;
@@ -96,9 +125,10 @@ function loop() {
 
 function startSpin() {
   if (spinning || names.length === 0) return;
-  spinning = true; decelerating = false;
+  spinning = true;
+  decelerating = false;
 
-  speed = 0.18 + Math.random() * 0.05;
+  speed = 0.1 + Math.random() * 0.03;
   angle = Math.random() * Math.PI * 2;
 
   clearInterval(timerId);
@@ -108,17 +138,21 @@ function startSpin() {
     $('#timer').textContent = `00:${String(t).padStart(2, '0')}`;
   }, 1000);
 
-  const s = parseInt($('#autoTime').value, 10);
-  if (s > 0) {
-    autoStopTO = setTimeout(() => {
-      decelerating = true;
-      clearInterval(timerId);
-    }, s * 1000);
+  let s = parseInt($('#autoTime').value, 10);
+  if (isNaN(s) || s <= 0) {
+    s = 3;
   }
+
+  autoStopTO = setTimeout(() => {
+    autoStopReached = true;
+    decelerating = true;
+    clearInterval(timerId);
+  }, s * 1000);
 
   cancelAnimationFrame(rafId);
   rafId = requestAnimationFrame(loop);
 }
+
 
 function manualStop() {
   if (!spinning) return;
@@ -140,7 +174,7 @@ function finish() {
   const finalAngle = angle;
 
   let start = null;
-  const duration = 600;
+  const duration = 400;
   const bounceSize = 0.05;
 
   function easeOut(t) {
@@ -149,7 +183,7 @@ function finish() {
 
   function animateBounce(ts) {
     if (!start) start = ts;
-    const progress = Math.min((ts - start) / duration, 1);
+    const progress = Math.min((ts - start) / duration, 15);
     const eased = easeOut(progress);
 
     const offset = Math.sin(progress * Math.PI) * bounceSize * (1 - eased);
@@ -172,7 +206,6 @@ function finish() {
   requestAnimationFrame(animateBounce);
 }
 
-
 $('#nameInput').addEventListener('input', showAutocomplete);
 
 function showAutocomplete() {
@@ -182,7 +215,6 @@ function showAutocomplete() {
   list.innerHTML = '';
 
   if (!val) return;
-
 
   const uniqueNames = [...new Set(names)];
   const suggestions = uniqueNames.filter(n => n.toLowerCase().includes(val));
@@ -214,4 +246,29 @@ document.querySelector(".winner-backdrop").addEventListener("click", () => {
   document.getElementById("winnerModal").classList.add("d-none");
 });
 
+$('#resetBtn').addEventListener('click', reset);
 
+function reset() {
+  names.length = 0;
+
+  $('#nameInput').value = '';
+  $('#qtyInput').value = 1;
+
+  clearTimeout(autoStopTO);
+  autoStopTO = null;
+
+  angle = 0;
+  speed = 0;
+  spinning = false;
+  decelerating = false;
+
+  $('#nameList').innerHTML = '';
+  $('#timer').textContent = '00:00';
+
+  drawWheel();
+
+  cancelAnimationFrame(rafId);
+  clearInterval(timerId);
+
+  document.getElementById("winnerModal").classList.add("d-none");
+}
