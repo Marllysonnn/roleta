@@ -6,6 +6,7 @@ let decelerating = false;
 let timerId = null;
 let autoStopTO = null;
 let autoStopReached = false;
+let isShuffled = false;
 const canvas = document.getElementById('wheel');
 const ctx = canvas.getContext('2d');
 
@@ -18,15 +19,57 @@ $('#qtyInput').addEventListener('keydown', e => { if (e.key === 'Enter') addName
 $('#startBtn').addEventListener('click', startSpin);
 $('#stopBtn').addEventListener('click', manualStop);
 
+const filmColors = {};
+
+
+function generateRandomColor() {
+  const letters = '0123456789ABCDEF';
+  let color = '#';
+  for (let i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+}
+
+
 function addName() {
   const name = $('#nameInput').value.trim();
   let qty = parseInt($('#qtyInput').value, 10) || 1;
   if (!name) return;
   qty = Math.max(1, qty);
+
+
+  if (!filmColors[name]) {
+    filmColors[name] = generateRandomColor();
+  }
+
   for (let i = 0; i < qty; i++) names.push(name);
-  shuffle(names);
+
+  if (!isShuffled) {
+    names.sort();
+  } else {
+    shuffle(names);
+  }
+
   $('#nameInput').value = '';
   $('#qtyInput').value = 1;
+  renderList();
+  drawWheel();
+}
+
+$('#shuffleBtn').addEventListener('click', toggleShuffle);
+
+function toggleShuffle() {
+  if (isShuffled) {
+
+    names.sort();
+    $('#shuffleBtn').textContent = 'Embaralhar';
+  } else {
+
+    shuffle(names);
+    $('#shuffleBtn').textContent = 'Agrupar';
+  }
+  isShuffled = !isShuffled;
   renderList();
   drawWheel();
 }
@@ -48,6 +91,21 @@ function renderList() {
   });
 }
 
+
+function getTextColor(backgroundColor) {
+  const hex = backgroundColor.replace('#', '');
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+
+
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+
+
+  return luminance > 0.5 ? '#000000' : '#FFFFFF';
+}
+
+
 function drawWheel() {
   const N = names.length;
   const W = canvas.width, H = canvas.height;
@@ -66,10 +124,17 @@ function drawWheel() {
   for (let i = 0; i < N; i++) {
     const start = angle + i * slice;
     const end = start + slice;
-    ctx.fillStyle = (i % 2 === 0) ? '#8b5cf6' : '#7c3aed';
+
+
+    const backgroundColor = filmColors[names[i]];
+    ctx.fillStyle = backgroundColor;
     ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, r, start, end); ctx.closePath(); ctx.fill();
+
+
+    const textColor = getTextColor(backgroundColor);
+
     ctx.save(); ctx.translate(cx, cy); ctx.rotate(start + slice / 2);
-    ctx.fillStyle = '#fff'; ctx.textAlign = 'right'; ctx.font = '16px sans-serif';
+    ctx.fillStyle = textColor; ctx.textAlign = 'right'; ctx.font = '16px sans-serif';
     ctx.fillText(names[i], r - 10, 0);
     ctx.restore();
   }
