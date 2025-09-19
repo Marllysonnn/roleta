@@ -89,8 +89,6 @@ function renderList() {
     const b = document.createElement('span');
     b.className = 'badge rounded-pill name-badge text-start flex-grow-1';
     b.textContent = `${n} ${counts[n]}x`;
-  // Não há mais input de quantidade
-    // Botão de remover uma ocorrência
     const minusBtn = document.createElement('button');
     minusBtn.className = 'btn btn-sm btn-danger d-flex align-items-center justify-content-center';
     minusBtn.setAttribute('aria-label', `Remover uma ocorrência de ${n}`);
@@ -105,7 +103,6 @@ function renderList() {
       removeName(n, 1);
     });
 
-    // Botão de adicionar uma ocorrência
     const plusBtn = document.createElement('button');
     plusBtn.className = 'btn btn-sm btn-success d-flex align-items-center justify-content-center';
     plusBtn.setAttribute('aria-label', `Adicionar uma ocorrência de ${n}`);
@@ -117,7 +114,6 @@ function renderList() {
       drawWheel();
     });
 
-    // Botão de excluir todas as ocorrências
     const delBtn = document.createElement('button');
     delBtn.className = 'btn btn-sm btn-outline-danger d-flex align-items-center justify-content-center';
     delBtn.setAttribute('aria-label', `Excluir todas as ocorrências de ${n}`);
@@ -144,7 +140,6 @@ function renderList() {
   wrapper.appendChild(actions);
   list.appendChild(wrapper);
   });
-// Remove uma quantidade específica de ocorrências de um nome da lista
 function removeName(name, qty = 1) {
   let removed = 0;
   for (let i = names.length - 1; i >= 0 && removed < qty; i--) {
@@ -214,8 +209,7 @@ function startSpin() {
   spinning = true;
   decelerating = false;
 
-  // Valores fixos para padronizar a experiência
-  speed = 0.13; // velocidade inicial fixa
+  speed = 0.13;
   angle = Math.random() * Math.PI * 2;
 
   clearInterval(timerId);
@@ -225,13 +219,11 @@ function startSpin() {
     $('#timer').textContent = `00:${String(t).padStart(2, '0')}`;
   }, 1000);
 
-  // Tempo mínimo de giro (em segundos)
   let s = parseInt($('#autoTime').value, 10);
   if (isNaN(s) || s <= 0) {
     s = 3;
   }
 
-  // Após s segundos, inicia desaceleração
   autoStopTO = setTimeout(() => {
     autoStopReached = true;
     decelerating = true;
@@ -246,7 +238,6 @@ function loop() {
   angle = (angle + speed) % (Math.PI * 2);
 
   if (decelerating) {
-    // Fator de desaceleração fixo para todos os navegadores
     speed *= 0.985;
     if (speed < 0.002) {
       finish();
@@ -336,7 +327,6 @@ function finish() {
 
   document.getElementById("winnerModal").classList.remove("d-none");
   launchConfetti();
-// Confetti animation
 function launchConfetti() {
   const confettiColors = ["#a78bfa", "#7c3aed", "#22c55e", "#fbbf24", "#f472b6", "#38bdf8", "#fff"];
   const container = document.getElementById("confettiContainer");
