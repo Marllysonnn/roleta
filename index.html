@@ -14,9 +14,9 @@
         <div class="glass p-4">
             <div class="d-flex flex-column flex-md-row align-items-md-end justify-content-between gap-3 mb-4">
                 <div>
-                    <h1 class="h3 mb-1 title-gradient">Roleta de Filmes</h1>
-                    <p class="text-secondary mb-0">Insira os Filmes · insira a quantidade (opcional) · coloque o time
-                        (opcional) · Iniciar / Parar com desaceleração</p>
+                    <h1 class="h3 mb-1 title-gradient">Roleta</h1>
+                    <p class="text-secondary mb-0">Insira os Itens · insira a quantidade (opcional) · coloque o tempo até a roleta começar a parar
+                        (opcional) · Iniciar / Parar</p>
                 </div>
                 <div class="d-flex gap-2">
                     <div class="timer-pill text-center" id="timer">00:00</div>
@@ -32,38 +32,39 @@
                     <div class="vstack gap-2">
                         <div class="d-flex gap-2">
                             <div style="width: 70%" class="input-group">
-                                <input type="text" id="nameInput" class="form-control" placeholder="Digite o filme">
-                                <div id="autocompleteList" class="autocomplete-list"></div>
-                                <button id="addBtn" class="btn p-0"
-                                    style="background: #7c3aed; width: 80px;">Adicionar</button>
+                                <label for="nameInput" class="visually-hidden">Filme</label>
+                                <input type="text" id="nameInput" class="form-control" placeholder="Digite o filme" aria-label="Nome do filme" autocomplete="off">
+                                <div id="autocompleteList" class="autocomplete-list" aria-live="polite"></div>
+                                <button id="addBtn" class="btn p-0" style="background: #7c3aed; width: 80px;" aria-label="Adicionar filme">Adicionar</button>
                             </div>
                             <div style="width: 30%" class="input-group">
+                                <label for="qtyInput" class="visually-hidden">Quantidade</label>
                                 <span class="input-group-text bg-transparent text-light">Qtd</span>
-                                <input id="qtyInput" type="number" class="form-control" min="1" value="1">
+                                <input id="qtyInput" type="number" class="form-control" min="1" value="1" aria-label="Quantidade de vezes">
                             </div>
                         </div>
                         <div class="d-flex gap-2">
                             <div class="col">
                                 <div class="input-group">
+                                    <label for="autoTime" class="visually-hidden">Tempo de rotação</label>
                                     <span class="input-group-text bg-transparent text-light">Time</span>
-                                    <input id="autoTime" type="number" class="form-control" placeholder="3s"
-                                        min="1">
+                                    <input id="autoTime" type="number" class="form-control" placeholder="3s" min="1" aria-label="Tempo de rotação em segundos">
                                 </div>
                             </div>
                             <div class="row gap-0 col-md-8">
                                 <div class="input-group">
-                                    <button id="startBtn" class="btn btn-success w-50">Iniciar</button>
-                                    <button id="stopBtn" class="btn btn-danger w-50">Parar</button>
+                                    <button id="startBtn" class="btn btn-success w-50" aria-label="Iniciar roleta">Iniciar</button>
+                                    <button id="stopBtn" class="btn btn-danger w-50" aria-label="Parar roleta">Parar</button>
                                 </div>
                             </div>
                         </div>
 
                         <div class="card bg-transparent border-0 flex-grow-1">
                             <div class="card-header bg-transparent border-0 pb-0">
-                                <h2 class="h6 mb-2">Filmes adicionados</h2>
+                                <h2 class="h6 mb-2" id="filmesAdicionados">Filmes adicionados</h2>
                             </div>
                             <div style="background: #2d1c4b6e; border-radius: 0.5rem;"
-                                class="card-body names-card pt-3">
+                                class="card-body names-card pt-3" aria-labelledby="filmesAdicionados">
                                 <div id="nameList" class="d-flex flex-column gap-2"></div>
                             </div>
                         </div>
@@ -72,7 +73,7 @@
 
                 <div class="col-12 col-lg-7 d-flex justify-content-center align-items-center">
                     <div class="wheel-wrap">
-                        <canvas id="wheel" width="500" height="500"></canvas>
+                        <canvas id="wheel" width="500" height="500" aria-label="Roleta de filmes" tabindex="0"></canvas>
                         <div class="pointer"></div>
                     </div>
                 </div>
@@ -80,8 +81,9 @@
                 <div class="col-12 text-center mt-3 display">
                     <div id="winnerModal" class="winner-modal d-none">
                         <div class="winner-backdrop"></div>
+                        <div class="confetti-container" id="confettiContainer"></div>
                         <div class="winner-box">
-                            <button id="closeWinner" class="close-btn">&times;</button>
+                            <button id="closeWinner" class="close-btn" aria-label="Fechar modal de vencedor">&times;</button>
                             <h2 class="winner-title">🎉 Filme Sorteado</h2>
                             <p id="winnerName" class="winner-name"></p>
                         </div>

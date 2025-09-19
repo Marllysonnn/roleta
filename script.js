@@ -84,11 +84,78 @@ function renderList() {
   });
 
   Object.keys(counts).forEach(n => {
+    const wrapper = document.createElement('div');
+  wrapper.className = 'd-flex align-items-center gap-2';
     const b = document.createElement('span');
-    b.className = 'badge rounded-pill name-badge text-start';
+    b.className = 'badge rounded-pill name-badge text-start flex-grow-1';
     b.textContent = `${n} ${counts[n]}x`;
-    list.appendChild(b);
+  // Não há mais input de quantidade
+    // Botão de remover uma ocorrência
+    const minusBtn = document.createElement('button');
+    minusBtn.className = 'btn btn-sm btn-danger d-flex align-items-center justify-content-center';
+    minusBtn.setAttribute('aria-label', `Remover uma ocorrência de ${n}`);
+    minusBtn.setAttribute('tabindex', '0');
+    minusBtn.innerHTML = '<strong>-</strong>';
+    minusBtn.addEventListener('click', () => {
+      if (counts[n] === 1) {
+        if (!confirm(`Tem certeza que deseja excluir o filme "${n}"?`)) {
+          return;
+        }
+      }
+      removeName(n, 1);
+    });
+
+    // Botão de adicionar uma ocorrência
+    const plusBtn = document.createElement('button');
+    plusBtn.className = 'btn btn-sm btn-success d-flex align-items-center justify-content-center';
+    plusBtn.setAttribute('aria-label', `Adicionar uma ocorrência de ${n}`);
+    plusBtn.setAttribute('tabindex', '0');
+    plusBtn.innerHTML = '<strong>+</strong>';
+    plusBtn.addEventListener('click', () => {
+      names.push(n);
+      renderList();
+      drawWheel();
+    });
+
+    // Botão de excluir todas as ocorrências
+    const delBtn = document.createElement('button');
+    delBtn.className = 'btn btn-sm btn-outline-danger d-flex align-items-center justify-content-center';
+    delBtn.setAttribute('aria-label', `Excluir todas as ocorrências de ${n}`);
+    delBtn.setAttribute('tabindex', '0');
+    delBtn.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+        <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5.5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6zm2 .5a.5.5 0 0 1 .5-.5.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6z"/>
+        <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1 0-2h3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3a.5.5 0 0 0 0 1H13.5a.5.5 0 0 0 0-1H2.5z"/>
+      </svg>
+    `;
+    delBtn.addEventListener('click', () => {
+      if (!confirm(`Tem certeza que deseja excluir todas as ocorrências de "${n}"?`)) {
+        return;
+      }
+      removeName(n, counts[n]);
+    });
+
+  const actions = document.createElement('div');
+  actions.className = 'name-actions';
+  actions.appendChild(minusBtn);
+  actions.appendChild(plusBtn);
+  actions.appendChild(delBtn);
+  wrapper.appendChild(b);
+  wrapper.appendChild(actions);
+  list.appendChild(wrapper);
   });
+// Remove uma quantidade específica de ocorrências de um nome da lista
+function removeName(name, qty = 1) {
+  let removed = 0;
+  for (let i = names.length - 1; i >= 0 && removed < qty; i--) {
+    if (names[i] === name) {
+      names.splice(i, 1);
+      removed++;
+    }
+  }
+  renderList();
+  drawWheel();
+}
 }
 
 
@@ -126,9 +193,9 @@ function drawWheel() {
     const end = start + slice;
 
 
-    const backgroundColor = filmColors[names[i]];
-    ctx.fillStyle = backgroundColor;
-    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, r, start, end); ctx.closePath(); ctx.fill();
+  const backgroundColor = filmColors[names[i]];
+  ctx.fillStyle = backgroundColor;
+  ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, r, start, end); ctx.closePath(); ctx.fill();
 
 
     const textColor = getTextColor(backgroundColor);
@@ -147,7 +214,8 @@ function startSpin() {
   spinning = true;
   decelerating = false;
 
-  speed = 0.1 + Math.random() * 0.03;
+  // Valores fixos para padronizar a experiência
+  speed = 0.13; // velocidade inicial fixa
   angle = Math.random() * Math.PI * 2;
 
   clearInterval(timerId);
@@ -157,11 +225,13 @@ function startSpin() {
     $('#timer').textContent = `00:${String(t).padStart(2, '0')}`;
   }, 1000);
 
+  // Tempo mínimo de giro (em segundos)
   let s = parseInt($('#autoTime').value, 10);
   if (isNaN(s) || s <= 0) {
     s = 3;
   }
 
+  // Após s segundos, inicia desaceleração
   autoStopTO = setTimeout(() => {
     autoStopReached = true;
     decelerating = true;
@@ -176,8 +246,8 @@ function loop() {
   angle = (angle + speed) % (Math.PI * 2);
 
   if (decelerating) {
-    speed *= 0.990;
-
+    // Fator de desaceleração fixo para todos os navegadores
+    speed *= 0.985;
     if (speed < 0.002) {
       finish();
       return;
@@ -262,9 +332,28 @@ function finish() {
       angle = finalAngle;
       drawWheel();
 
-      document.getElementById("winnerName").textContent = names[idx];
+  document.getElementById("winnerName").textContent = names[idx];
 
-      document.getElementById("winnerModal").classList.remove("d-none");
+  document.getElementById("winnerModal").classList.remove("d-none");
+  launchConfetti();
+// Confetti animation
+function launchConfetti() {
+  const confettiColors = ["#a78bfa", "#7c3aed", "#22c55e", "#fbbf24", "#f472b6", "#38bdf8", "#fff"];
+  const container = document.getElementById("confettiContainer");
+  if (!container) return;
+  container.innerHTML = "";
+  const confettiCount = 70;
+  for (let i = 0; i < confettiCount; i++) {
+    const conf = document.createElement("div");
+    conf.className = "confetti";
+    conf.style.left = Math.random() * 95 + "%";
+    conf.style.background = confettiColors[Math.floor(Math.random() * confettiColors.length)];
+    conf.style.animationDelay = (Math.random() * 1.2) + "s";
+    conf.style.transform = `rotate(${Math.random()*360}deg)`;
+    container.appendChild(conf);
+  }
+  setTimeout(() => { container.innerHTML = ""; }, 3200);
+}
     }
   }
 
