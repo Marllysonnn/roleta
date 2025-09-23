@@ -4,13 +4,20 @@
     align-items: center;
 }
 .name-actions .btn {
-    min-width: 32px;
-    min-height: 32px;
+    min-width: 2rem;
+    min-height: 2rem;
     padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.1rem;
+}
+.name-actions .btn svg {
+    width: 75%;
+    height: 100%;
+    display: block;
+    margin: auto;
+    flex-shrink: 0;
 }
 .visually-hidden {
     position: absolute !important;
@@ -31,17 +38,17 @@
 }
 .confetti {
     position: absolute;
-    width: 12px;
-    height: 18px;
-    border-radius: 3px;
+    width: 0.75rem;
+    height: 1.125rem;
+    border-radius: 0.1875rem;
     opacity: 0.85;
     will-change: transform;
     animation: confetti-fall 2.5s linear forwards;
 }
 @keyframes confetti-fall {
-    0% { transform: translateY(-40px) rotate(0deg); opacity: 1; }
+    0% { transform: translateY(-2.5rem) rotate(0deg); opacity: 1; }
     80% { opacity: 1; }
-    100% { transform: translateY(420px) rotate(360deg); opacity: 0; }
+    100% { transform: translateY(25rem) rotate(360deg); opacity: 0; }
 }
 :root {
     --bg-1: #0d0b11;
@@ -52,30 +59,31 @@
     --txt: #f3f2ff;
     --muted: #b9b6d3;
 }
-
 body {
     background: linear-gradient(180deg, var(--bg-1), var(--bg-2));
     color: var(--txt);
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    font-size: clamp(0.875rem, 1.5vw, 1rem);
 }
-
 .glass {
     background: var(--card);
     backdrop-filter: blur(10px);
     border: 1px solid #2a2740;
     box-shadow: 0 0 0 1px #0b0a12 inset, 0 10px 30px rgb(0 0 0 / .35), 0 0 40px rgb(139 92 246 / .25);
-    border-radius: 16px;
+    border-radius: 1rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: clamp(1rem, 2vw, 1.5rem);
 }
-
 .title-gradient {
     background: linear-gradient(90deg, var(--txt), #c4b5fd);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+    font-size: clamp(1.5rem, 3vw, 2rem);
 }
-
 .btn-accent {
     --bs-btn-color: #fff;
     --bs-btn-bg: var(--accent);
@@ -84,7 +92,6 @@ body {
     --bs-btn-hover-border-color: #7c3aed;
     --bs-btn-hover-color: #fff;
 }
-
 .name-badge {
     background: #1e1736;
     color: #e9d5ff;
@@ -92,28 +99,30 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.5rem 1rem;
+    padding: clamp(0.4rem, 1vw, 0.6rem) 1rem;
+    font-size: clamp(0.875rem, 1.5vw, 1rem);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
-
 .timer-pill {
     display: inline-block;
-    min-width: 68px;
-    padding: .35rem .6rem;
+    min-width: 4.25rem;
+    padding: clamp(0.3rem, 0.8vw, 0.4rem) 0.6rem;
     border-radius: 999px;
     background: #1b1631;
     border: 1px solid #2b2250;
     color: #e9d5ff;
     font-weight: 600;
+    font-size: clamp(0.75rem, 1.2vw, 0.875rem);
 }
-
 .wheel-wrap {
     position: relative;
-    width: 430px;
-    max-width: 500px;
+    width: clamp(300px, 40vw, 500px);
+    max-width: 100%;
     margin: auto;
     aspect-ratio: 1/1;
 }
-
 .pointer {
     position: absolute;
     top: 44%;
@@ -122,11 +131,10 @@ body {
     transform: translateY(-50%);
     width: 0;
     height: 0;
-    border-top: 14px solid transparent;
-    border-bottom: 14px solid transparent;
-    border-left: 24px solid #ffffff;
+    border-top: clamp(0.75rem, 1.5vw, 0.875rem) solid transparent;
+    border-bottom: clamp(0.75rem, 1.5vw, 0.875rem) solid transparent;
+    border-left: clamp(1.25rem, 2.5vw, 1.5rem) solid #ffffff;
 }
-
 canvas {
     width: 100%;
     height: auto;
@@ -134,167 +142,152 @@ canvas {
     border-radius: 50%;
     background: #0f0c19;
 }
-
 .names-card {
-    max-height: 240px;
+    max-height: clamp(200px, 30vh, 300px);
     overflow-y: auto;
     flex-grow: 1;
     scrollbar-width: thin;
     scrollbar-color: #a78bfa #2d1c4b6e;
 }
-
-/* Chrome, Edge, Safari */
 .names-card::-webkit-scrollbar {
-    width: 8px;
+    width: 0.5rem;
     background: #2d1c4b6e;
-    border-radius: 8px;
+    border-radius: 0.5rem;
 }
 .names-card::-webkit-scrollbar-thumb {
     background: #a78bfa;
-    border-radius: 8px;
+    border-radius: 0.5rem;
     border: 2px solid #2d1c4b6e;
 }
 .names-card::-webkit-scrollbar-thumb:hover {
     background: #7c3aed;
 }
-
 .container {
     flex-grow: 1;
     display: flex;
     flex-direction: column;
-    padding: 1rem;
+    padding: clamp(0.5rem, 1.5vw, 1rem);
+    max-width: 100%;
 }
-
 .vstack {
     flex-grow: 1;
 }
-
-@media (max-width: 991px) {
-    .wheel-wrap {
-        max-width: 300px;
-    }
-
-    .glass {
-        padding: 1rem !important;
-    }
-
-    .names-card {
-        max-height: 200px;
-    }
-}
-
-@media (max-width: 576px) {
-    .wheel-wrap {
-        max-width: 250px;
-    }
-
-    .container {
-        padding: 0.5rem;
-    }
-
-    .h3 {
-        font-size: 1.25rem;
-    }
-
-    .timer-pill {
-        font-size: 0.875rem;
-        min-width: 60px;
-    }
-
-    .input-group {
-        flex-wrap: wrap;
-    }
-
-    .input-group>* {
-        flex: 1 1 100%;
-    }
-
-    .btn {
-        width: 100%;
-        margin-top: 0.5rem;
-    }
-}
-
 .autocomplete-list {
-    margin-top: 2.3em;
+    margin-top: clamp(2rem, 2.5vw, 2.3rem);
     position: absolute;
     background: #151224;
     border: 1px solid #ddd;
-    border-radius: 6px;
-    max-height: 250px;
+    border-radius: 0.375rem;
+    max-height: clamp(200px, 25vh, 250px);
     overflow-y: auto;
     width: auto;
     z-index: 1000;
 }
-
 .autocomplete-list div {
-    padding: 6px 10px;
+    padding: clamp(0.3rem, 0.8vw, 0.5rem) 0.625rem;
     cursor: pointer;
+    font-size: clamp(0.875rem, 1.5vw, 1rem);
 }
-
 .autocomplete-list div:hover {
     background: #2a2446;
 }
-
 .winner-modal {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2000;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
 }
-
 .winner-backdrop {
-  position: absolute;
-  width: 100%; height: 100%;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(6px);
+    position: absolute;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(0.375rem);
 }
-
 .winner-box {
-  position: relative;
-  background: #1b1631;
-  border: 1px solid #2b2250;
-  border-radius: 12px;
-  padding: 2rem;
-  text-align: center;
-  color: #fff;
-  z-index: 2001;
-  max-width: 320px;
-  width: 90%;
-  animation: pop 0.4s ease;
+    position: relative;
+    background: #1b1631;
+    border: 1px solid #2b2250;
+    border-radius: 0.75rem;
+    padding: clamp(1.5rem, 2.5vw, 2rem);
+    text-align: center;
+    color: #fff;
+    z-index: 2001;
+    max-width: clamp(280px, 25vw, 400px);
+    width: 90%;
+    animation: pop 0.4s ease;
 }
-
 .winner-title {
-  font-size: 1.25rem;
-  margin-bottom: 1rem;
-  color: #a78bfa;
+    font-size: clamp(1rem, 2vw, 1.25rem);
+    margin-bottom: 1rem;
+    color: #a78bfa;
 }
-
 .winner-name {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #22c55e;
+    font-size: clamp(1.25rem, 2.5vw, 1.5rem);
+    font-weight: bold;
+    color: #22c55e;
 }
 
+button strong {
+    margin-bottom: 3px;
+}
 .close-btn {
-  position: absolute;
-  top: 10px;
-  right: 14px;
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  color: #fff;
-  cursor: pointer;
+    position: absolute;
+    top: 0.625rem;
+    right: 0.875rem;
+    background: none;
+    border: none;
+    font-size: clamp(1.25rem, 2vw, 1.5rem);
+    color: #fff;
+    cursor: pointer;
 }
-
 @keyframes pop {
-  0% { transform: scale(0.8); opacity: 0; }
-  100% { transform: scale(1); opacity: 1; }
+    0% { transform: scale(0.8); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
 }
-
 .d-none {
-  display: none !important;
+    display: none !important;
+}
+@media (min-width: 1024px) {
+    .wheel-wrap {
+        width: clamp(350px, 35vw, 450px);
+    }
+    .glass {
+        padding: clamp(1.25rem, 2vw, 1.75rem);
+    }
+    .names-card {
+        max-height: 350px;
+    }
+}
+@media (min-width: 1440px) {
+    .wheel-wrap {
+        width: clamp(400px, 33vw, 500px);
+    }
+    .container {
+        max-width: 1200px;
+    }
+}
+@media (min-width: 1920px) {
+    .wheel-wrap {
+        width: clamp(450px, 30vw, 550px);
+    }
+    .container {
+        max-width: 1400px;
+    }
+    .glass {
+        padding: clamp(1.5rem, 1.8vw, 2rem);
+    }
+    .winner-box {
+        max-width: 450px;
+    }
+}
+@media (max-width: 1200px) {
+    .wheel-wrap {
+        width: clamp(300px, 45vw, 400px);
+    }
+    .names-card {
+        max-height: 250px;
+    }
 }
