@@ -1,4 +1,5 @@
-// Initialize variables
+const MAX_WHEEL_SPEED = 0.12; 
+
 let roletaAudio = null;
 let tickAudio = null;
 const names = [];
@@ -11,11 +12,105 @@ let autoStopTO = null;
 let autoStopReached = false;
 let isShuffled = false;
 let lastSectionIndex = -1;
+let spinDuration = 0; 
+let targetStopTs = null; 
+let initialSpeed = 0; 
+let timeBasedStop = false; 
 const canvas = document.getElementById('wheel');
 const ctx = canvas.getContext('2d');
 const $ = sel => document.querySelector(sel);
 
-// Shuffle function
+
+let isDragging = false;
+let dragStartAngle = 0;
+let dragStartMouseAngle = 0;
+let lastDragTime = 0;
+let lastDragAngle = 0;
+let dragAngularSpeed = 0;
+
+function getMouseAngle(e) {
+  const rect = canvas.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  const mx = e.clientX;
+  const my = e.clientY;
+  return Math.atan2(my - cy, mx - cx);
+}
+
+canvas.addEventListener('mousedown', (e) => {
+  if (spinning) return;
+  isDragging = true;
+  dragStartAngle = angle;
+  dragStartMouseAngle = getMouseAngle(e);
+  lastDragTime = Date.now();
+  lastDragAngle = dragStartMouseAngle;
+  dragAngularSpeed = 0;
+  canvas.style.cursor = 'grabbing';
+});
+
+window.addEventListener('mousemove', (e) => {
+  if (!isDragging) return;
+  const mouseAngle = getMouseAngle(e);
+  
+  let delta = mouseAngle - dragStartMouseAngle;
+  while (delta > Math.PI) delta -= 2 * Math.PI;
+  while (delta < -Math.PI) delta += 2 * Math.PI;
+  angle = (dragStartAngle + delta) % (Math.PI * 2);
+  drawWheel();
+  
+  const now = Date.now();
+  const dt = (now - lastDragTime) / 1000; 
+  let deltaSpeed = mouseAngle - lastDragAngle;
+  while (deltaSpeed > Math.PI) deltaSpeed -= 2 * Math.PI;
+  while (deltaSpeed < -Math.PI) deltaSpeed += 2 * Math.PI;
+  if (dt > 0) {
+    dragAngularSpeed = deltaSpeed / dt;
+    lastDragTime = now;
+    lastDragAngle = mouseAngle;
+  }
+});
+
+window.addEventListener('mouseup', () => {
+  if (isDragging) {
+    isDragging = false;
+    canvas.style.cursor = 'grab';
+    
+    if (Math.abs(dragAngularSpeed) > 0.01) {
+      
+      const dir = dragAngularSpeed < 0 ? -1 : 1;
+      speed = Math.min(Math.abs(dragAngularSpeed), MAX_WHEEL_SPEED) * dir;
+      spinning = true;
+      decelerating = false;
+      timeBasedStop = true;
+      
+      let s = parseInt($('#autoTime').value, 10);
+      if (isNaN(s) || s <= 0) s = 15;
+      spinDuration = s * 1000;
+      targetStopTs = Date.now() + spinDuration;
+      initialSpeed = Math.abs(speed); 
+      clearInterval(timerId);
+      startTs = Date.now();
+      autoStopReached = false;
+      clearTimeout(autoStopTO);
+      autoStopTO = setTimeout(() => {
+        autoStopReached = true;
+      }, spinDuration);
+      
+      if (roletaAudio) {
+        roletaAudio.volume = Math.min(0.05, parseFloat(roletaAudio.volume) || 0.05);
+        roletaAudio.play().catch(err => {
+          console.error('Erro ao reproduzir áudio:', err);
+        });
+      }
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(loop);
+    }
+  }
+});
+
+canvas.style.cursor = 'grab';
+
+
 function shuffle(arr) {
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -23,12 +118,45 @@ function shuffle(arr) {
   }
 }
 
-// DOMContentLoaded event listener
+
 window.addEventListener('DOMContentLoaded', () => {
   roletaAudio = document.getElementById('roletaAudio');
   tickAudio = document.getElementById('tickAudio');
   if (tickAudio) {
-    tickAudio.volume = 0.7;
+    tickAudio.volume = 0.03;
+  }
+  const volumeSlider = document.getElementById('volumeSlider');
+  const volumeIcon = document.getElementById('volumeIcon');
+  
+  const SVG_MUTE = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>';
+  const SVG_LOW = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>';
+  const SVG_HIGH = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>';
+
+  function updateVolumeIcon(v) {
+    if (!volumeIcon) return;
+    if (v === 0) {
+      volumeIcon.innerHTML = SVG_MUTE;
+    } else if (v < 0.5) {
+      volumeIcon.innerHTML = SVG_LOW;
+    } else {
+      volumeIcon.innerHTML = SVG_HIGH;
+    }
+  }
+  function setRoletaVolume(v) {
+    if (!roletaAudio) return;
+    
+    roletaAudio.volume = Math.max(0, Math.min(0.05, v));
+  }
+  if (volumeSlider) {
+    
+  
+  volumeSlider.value = roletaAudio ? String(Math.min(0.05, roletaAudio.volume)) : '0.05';
+  setRoletaVolume(parseFloat(volumeSlider.value));
+  updateVolumeIcon(parseFloat(volumeSlider.value));
+    volumeSlider.addEventListener('input', (e) => {
+      setRoletaVolume(parseFloat(e.target.value));
+      updateVolumeIcon(parseFloat(e.target.value));
+    });
   }
   $('#addBtn').addEventListener('click', addName);
   $('#nameInput').addEventListener('keydown', e => { if (e.key === 'Enter') addName(); });
@@ -64,10 +192,10 @@ window.addEventListener('DOMContentLoaded', () => {
   resizeCanvas();
 });
 
-// Film colors object
+
 const filmColors = {};
 
-// Generate random color
+
 function generateRandomColor() {
   const letters = '0123456789ABCDEF';
   let color = '#';
@@ -77,7 +205,7 @@ function generateRandomColor() {
   return color;
 }
 
-// Add name to list
+
 function addName() {
   const name = $('#nameInput').value.trim();
   let qty = parseInt($('#qtyInput').value, 10) || 1;
@@ -98,7 +226,7 @@ function addName() {
   drawWheel();
 }
 
-// Toggle shuffle
+
 function toggleShuffle() {
   if (isShuffled) {
     names.sort();
@@ -112,7 +240,7 @@ function toggleShuffle() {
   drawWheel();
 }
 
-// Render name list
+
 function renderList() {
   const list = $('#nameList');
   list.innerHTML = '';
@@ -177,7 +305,7 @@ function renderList() {
   });
 }
 
-// Remove name from list
+
 function removeName(name, qty = 1) {
   let removed = 0;
   for (let i = names.length - 1; i >= 0 && removed < qty; i--) {
@@ -190,7 +318,7 @@ function removeName(name, qty = 1) {
   drawWheel();
 }
 
-// Get text color based on background
+
 function getTextColor(backgroundColor) {
   const hex = backgroundColor.replace('#', '');
   const r = parseInt(hex.substring(0, 2), 16);
@@ -200,7 +328,7 @@ function getTextColor(backgroundColor) {
   return luminance > 0.5 ? '#000000' : '#FFFFFF';
 }
 
-// Draw the wheel
+
 function drawWheel() {
   const N = names.length;
   const W = canvas.width, H = canvas.height;
@@ -246,7 +374,7 @@ function drawWheel() {
   ctx.beginPath(); ctx.fillStyle = '#110d1d'; ctx.arc(cx, cy, 40, 0, Math.PI * 2); ctx.fill();
 }
 
-// Export names to .txt
+
 function exportNames() {
   if (!names.length) {
     alert('Nenhum filme para exportar!');
@@ -266,7 +394,7 @@ function exportNames() {
   }, 100);
 }
 
-// Import names from .txt
+
 function importNamesFromFile(e) {
   const file = e.target.files[0];
   if (!file) return;
@@ -292,42 +420,55 @@ function importNamesFromFile(e) {
   e.target.value = '';
 }
 
-// Start spin
+
 function startSpin() {
   if (spinning || names.length === 0) return;
   spinning = true;
   decelerating = false;
   lastSectionIndex = -1;
   if (roletaAudio) {
-    roletaAudio.volume = 1;
+    roletaAudio.volume = Math.min(0.05, parseFloat(roletaAudio.volume) || 0.05);
     roletaAudio.play().catch(err => {
       console.error('Erro ao reproduzir áudio:', err);
     });
   }
-  speed = 0.1 + Math.random() * 0.03;
+  speed = Math.min(0.1 + Math.random() * 0.03, MAX_WHEEL_SPEED);
   angle = Math.random() * Math.PI * 2;
+  
+  let s = parseInt($('#autoTime').value, 10);
+  if (isNaN(s) || s <= 0) s = 15;
+  spinDuration = s * 1000;
+  targetStopTs = Date.now() + spinDuration;
+  initialSpeed = speed;
+  timeBasedStop = true;
   clearInterval(timerId);
   startTs = Date.now();
-  timerId = setInterval(() => {
-    const t = Math.floor((Date.now() - startTs) / 1000);
-    $('#timer').textContent = `00:${String(t).padStart(2, '0')}`;
-  }, 1000);
-  let s = parseInt($('#autoTime').value, 10);
-  if (isNaN(s) || s <= 0) {
-    s = 15;
-  }
+  
+  
+  
+  
+  autoStopReached = false;
+  clearTimeout(autoStopTO);
   autoStopTO = setTimeout(() => {
     autoStopReached = true;
-    decelerating = true;
-    clearInterval(timerId);
-  }, s * 1000);
+    
+    
+    
+  }, spinDuration);
   cancelAnimationFrame(rafId);
   rafId = requestAnimationFrame(loop);
 }
 
-// Animation loop
+
 let rafId = 0; let startTs = 0;
+let lastTickTime = 0;
 function loop() {
+  
+  if (speed < 0) {
+    speed = -Math.min(Math.abs(speed), MAX_WHEEL_SPEED);
+  } else {
+    speed = Math.min(Math.abs(speed), MAX_WHEEL_SPEED);
+  }
   angle = (angle + speed) % (Math.PI * 2);
   if (spinning && names.length > 0) {
     const N = names.length;
@@ -335,37 +476,86 @@ function loop() {
     const normalizedAngle = (Math.PI * 2 - (angle % (Math.PI * 2))) % (Math.PI * 2);
     const currentSectionIndex = Math.floor(normalizedAngle / slice) % N;
     if (currentSectionIndex !== lastSectionIndex && lastSectionIndex !== -1) {
-      if (tickAudio) {
+      const now = Date.now();
+      if (tickAudio && now - lastTickTime > 50) { 
         tickAudio.currentTime = 0;
         tickAudio.play().catch(err => {
           console.error('Erro ao reproduzir áudio de clique:', err);
         });
+        lastTickTime = now;
       }
     }
     lastSectionIndex = currentSectionIndex;
   }
-  if (decelerating) {
+  
+  
+  if (targetStopTs) {
+    const now = Date.now();
+    const remaining = targetStopTs - now;
+    if (remaining <= 0) {
+      
+      speed = 0;
+      targetStopTs = null;
+      
+      const timerEl = $('#timer');
+      if (timerEl) timerEl.textContent = '00:00';
+      finish();
+      return;
+    } else {
+      
+      const elapsed = spinDuration - remaining;
+      const t = Math.min(1, elapsed / spinDuration);
+      
+      const eased = 1 - Math.pow(1 - t, 2);
+      const target = initialSpeed * (1 - eased);
+      const minSpeedDuringTimeStop = 0.0005;
+      if (!decelerating) {
+        
+        const sign = speed < 0 ? -1 : 1;
+        speed = sign * Math.max(minSpeedDuringTimeStop, target);
+      }
+      
+      
+      
+    }
+  } else if (decelerating && !timeBasedStop) {
+    
     speed *= 0.996;
     if (speed < 0.002) {
       finish();
       return;
     }
   }
+  
+  const timerEl = $('#timer');
+  
+  if (spinning && timeBasedStop && !isDragging && targetStopTs) {
+    const remSec = Math.max(0, Math.ceil((targetStopTs - Date.now()) / 1000));
+    timerEl.textContent = `00:${String(remSec).padStart(2, '0')}`;
+  } else {
+    timerEl.textContent = '00:00';
+  }
   drawWheel();
   rafId = requestAnimationFrame(loop);
 }
 
-// Manual stop
+
 function manualStop() {
   if (!spinning) return;
+  
+  
+  targetStopTs = null;
+  spinDuration = 0;
+  initialSpeed = 0;
   decelerating = true;
   clearTimeout(autoStopTO);
   clearInterval(timerId);
 }
 
-// Finish spin with fade-out
 function finish() {
   cancelAnimationFrame(rafId);
+  const timerEl = $('#timer');
+  if (timerEl) timerEl.textContent = '00:00';
   speed = 0; decelerating = false; spinning = false;
   clearInterval(timerId);
   const N = names.length;
@@ -377,7 +567,7 @@ function finish() {
   const duration = 400;
   const bounceSize = 0.05;
 
-  // Audio fade-out
+  
   if (roletaAudio && !roletaAudio.paused) {
     const fadeDuration = 2000;
     const fadeDelay = 1000;
@@ -392,11 +582,12 @@ function finish() {
           if (roletaAudio) {
             roletaAudio.pause();
             roletaAudio.currentTime = 0;
-            roletaAudio.volume = 1;
+            roletaAudio.volume = 0.05;
           }
           return;
         }
-        roletaAudio.volume = Math.max(0, 1 - (currentStep / fadeSteps));
+  
+  roletaAudio.volume = Math.max(0, 0.05 * (1 - (currentStep / fadeSteps)));
         currentStep++;
       }, fadeInterval);
     }, fadeDelay);
@@ -427,7 +618,7 @@ function finish() {
   requestAnimationFrame(animateBounce);
 }
 
-// Launch confetti
+
 function launchConfetti() {
   const confettiColors = ["#a78bfa", "#7c3aed", "#22c55e", "#fbbf24", "#f472b6", "#38bdf8", "#fff"];
   const container = document.getElementById("confettiContainer");
@@ -446,7 +637,7 @@ function launchConfetti() {
   setTimeout(() => { container.innerHTML = ""; }, 3200);
 }
 
-// Autocomplete
+
 $('#nameInput').addEventListener('input', showAutocomplete);
 function showAutocomplete() {
   const input = $('#nameInput');
