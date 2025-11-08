@@ -1,4 +1,4 @@
-const MAX_WHEEL_SPEED = 0.12; 
+const MAX_WHEEL_SPEED = 0.22; // aumento para permitir giro inicial mais rápido
 
 let roletaAudio = null;
 let tickAudio = null;
@@ -99,7 +99,7 @@ window.addEventListener('mouseup', () => {
       if (roletaAudio) {
         roletaAudio.volume = Math.min(0.05, parseFloat(roletaAudio.volume) || 0.05);
         roletaAudio.play().catch(err => {
-          console.error('Erro ao reproduzir áudio:', err);
+          console.error('Erro ao reproduzir Áudio:', err);
         });
       }
       cancelAnimationFrame(rafId);
@@ -163,23 +163,29 @@ window.addEventListener('DOMContentLoaded', () => {
   $('#qtyInput').addEventListener('keydown', e => { if (e.key === 'Enter') addName(); });
   $('#startBtn').addEventListener('click', startSpin);
   $('#stopBtn').addEventListener('click', manualStop);
-  $('#exportBtn').addEventListener('click', exportNames);
-  $('#importInput').addEventListener('change', importNamesFromFile);
+  const exportBtn = $('#exportBtn');
+  if (exportBtn) exportBtn.addEventListener('click', exportNames);
+  const importInput = $('#importInput');
+  if (importInput) importInput.addEventListener('change', importNamesFromFile);
+  const importBtn = $('#importBtn');
+  if (importBtn && importInput) importBtn.addEventListener('click', () => importInput.click());
+  const resetBtn = $('#resetBtn');
+  if (resetBtn) resetBtn.addEventListener('click', reset);
   $('#shuffleBtn').addEventListener('click', toggleShuffle);
   $('#testAudioBtn').addEventListener('click', () => {
     if (roletaAudio) {
       roletaAudio.play().catch(err => {
-        console.error('Erro ao reproduzir áudio:', err);
-        alert('Não foi possível reproduzir o áudio. Verifique se o arquivo existe e está acessível.');
+        console.error('Erro ao reproduzir Áudio:', err);
+        alert('Não foi possí­vel reproduzir o Áudio. Verifique se o arquivo existe e está acessí­vel.');
       });
     }
     if (tickAudio) {
       tickAudio.play().catch(err => {
-        console.error('Erro ao reproduzir áudio de clique:', err);
+        console.error('Erro ao reproduzir Áudio de clique:', err);
       });
     }
     if (!roletaAudio && !tickAudio) {
-      alert('Nenhum elemento de áudio encontrado.');
+      alert('Nenhum elemento de Áudio encontrado.');
     }
   });
   function resizeCanvas() {
@@ -230,10 +236,10 @@ function addName() {
 function toggleShuffle() {
   if (isShuffled) {
     names.sort();
-    $('#shuffleBtn').textContent = 'Embaralhar';
+    $('#shuffleBtn').innerHTML = '<span class="material-symbols-rounded">shuffle</span>Embaralhar';
   } else {
     shuffle(names);
-    $('#shuffleBtn').textContent = 'Agrupar';
+    $('#shuffleBtn').innerHTML = '<span class="material-symbols-rounded">move_group</span>Agrupar';
   }
   isShuffled = !isShuffled;
   renderList();
@@ -402,7 +408,7 @@ function importNamesFromFile(e) {
   reader.onload = function(evt) {
     const lines = evt.target.result.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
     if (!lines.length) {
-      alert('Arquivo vazio ou inválido.');
+      alert('Arquivo vazio ou invÃ¡lido.');
       return;
     }
     names.length = 0;
@@ -429,10 +435,11 @@ function startSpin() {
   if (roletaAudio) {
     roletaAudio.volume = Math.min(0.05, parseFloat(roletaAudio.volume) || 0.05);
     roletaAudio.play().catch(err => {
-      console.error('Erro ao reproduzir áudio:', err);
+      console.error('Erro ao reproduzir Áudio:', err);
     });
   }
-  speed = Math.min(0.1 + Math.random() * 0.03, MAX_WHEEL_SPEED);
+  // inicial mais rápido (varia um pouco) mas respeita o limitador máximo
+  speed = Math.min(0.18 + Math.random() * 0.06, MAX_WHEEL_SPEED);
   angle = Math.random() * Math.PI * 2;
   
   let s = parseInt($('#autoTime').value, 10);
@@ -480,7 +487,7 @@ function loop() {
       if (tickAudio && now - lastTickTime > 50) { 
         tickAudio.currentTime = 0;
         tickAudio.play().catch(err => {
-          console.error('Erro ao reproduzir áudio de clique:', err);
+          console.error('Erro ao reproduzir Áudio de clique:', err);
         });
         lastTickTime = now;
       }
@@ -543,13 +550,17 @@ function loop() {
 function manualStop() {
   if (!spinning) return;
   
-  
-  targetStopTs = null;
-  spinDuration = 0;
-  initialSpeed = 0;
-  decelerating = true;
+  timeBasedStop = true;
+  targetStopTs = Date.now() + 5000; // 5 segundos
+  spinDuration = 5000;
+  initialSpeed = speed;
+  decelerating = false;
   clearTimeout(autoStopTO);
   clearInterval(timerId);
+  
+  // Atualiza o timer para mostrar a contagem regressiva
+  const timerEl = $('#timer');
+  if (timerEl) timerEl.textContent = '00:05';
 }
 
 function finish() {
@@ -609,9 +620,14 @@ function finish() {
     } else {
       angle = finalAngle;
       drawWheel();
-      document.getElementById("winnerName").textContent = names[idx];
-      document.getElementById("winnerModal").classList.remove("d-none");
-      launchConfetti();
+        document.getElementById("winnerName").textContent = names[idx];
+        document.getElementById("winnerModal").classList.remove("d-none");
+        launchConfetti();
+        try {
+          showFinalZoom(5);
+        } catch (e) {
+          console.error('Erro ao mostrar lupa final:', e);
+        }
     }
   }
 
