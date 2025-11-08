@@ -526,9 +526,9 @@ function loop() {
       
     }
   } else if (decelerating && !timeBasedStop) {
-    
-    speed *= 0.996;
-    if (speed < 0.002) {
+    // Desaceleração mais suave para o giro manual
+    speed *= 0.985;
+    if (Math.abs(speed) < 0.002) {
       finish();
       return;
     }
